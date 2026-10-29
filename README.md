@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/logo.png" alt="Pixelated cowboy in a hat, squinting" width="480">
+  <img src="assets/logo.png" alt="Pixelated cowboy in a hat, squinting" width="400">
 </p>
 
 <h1 align="center">There are two kinds of people... those with agent CLIs, and those who grep</h1>
