@@ -126,9 +126,15 @@ export async function smokeTest(path: string, expectedVersion: string): Promise<
 
 async function prepareForInstall(tmp: string, expectedVersion: string): Promise<void> {
   if (process.platform === "darwin") {
-    // Apple Silicon kills unsigned binaries; best-effort because codesign may be absent.
+    // Apple Silicon kills unsigned binaries. Release builds are already signed
+    // in CI, and re-signing would change the hash so the provenance attestation
+    // no longer matches; only sign when the existing signature is invalid.
+    // Best-effort because codesign may be absent.
     try {
-      await Bun.spawn(["codesign", "--force", "-s", "-", tmp], { stdout: "ignore", stderr: "ignore" }).exited;
+      const quiet = { stdout: "ignore", stderr: "ignore" } as const;
+      if ((await Bun.spawn(["codesign", "-v", tmp], quiet).exited) !== 0) {
+        await Bun.spawn(["codesign", "--force", "-s", "-", tmp], quiet).exited;
+      }
     } catch {}
   }
   await smokeTest(tmp, expectedVersion);
