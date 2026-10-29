@@ -56,6 +56,11 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      # Build provenance: checksums.txt ships in the same release, so it only
+      # proves integrity. An attestation proves the binary came from this repo's
+      # workflow (gh attestation verify clewd --repo whirlwin/cli-eastwood).
+      id-token: write
+      attestations: write
     steps:
       - uses: actions/download-artifact@v4
         with:
@@ -64,6 +69,9 @@ jobs:
       - name: Checksums
         working-directory: dist
         run: sha256sum clewd-* > checksums.txt
+      - uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: dist/clewd-*
       - name: Create release
         env:
           GH_TOKEN: ${{ github.token }}

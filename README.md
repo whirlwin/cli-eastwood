@@ -145,6 +145,13 @@ for a new version in the background (with a 1 second timeout) and mentions it
 after your command finishes. Set `upgrade.checkOnStartup: false` to turn that
 off. `GITHUB_TOKEN` is used for the API call when set.
 
+Every release binary carries a build provenance attestation, so you can
+check that it was built by this repo's release workflow:
+
+```sh
+gh attestation verify "$(command -v clewd)" --repo whirlwin/cli-eastwood
+```
+
 ## Why TypeScript on Bun
 
 Runtime extensibility needs a language that can load new code without a
