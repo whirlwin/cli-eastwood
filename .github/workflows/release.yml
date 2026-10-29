@@ -1,0 +1,73 @@
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.4
+      - run: bun install --frozen-lockfile && bun test
+
+  build:
+    needs: test
+    strategy:
+      matrix:
+        include:
+          # darwin binaries are built on macOS so they can be ad-hoc signed;
+          # unsigned arm64 binaries are killed by the kernel on Apple Silicon.
+          - { runner: macos-latest, os: darwin, arch: arm64 }
+          - { runner: macos-latest, os: darwin, arch: x64 }
+          - { runner: ubuntu-latest, os: linux, arch: arm64 }
+          - { runner: ubuntu-latest, os: linux, arch: x64 }
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.4
+      - run: bun install --frozen-lockfile
+      - name: Build
+        env:
+          VERSION: ${{ github.ref_name }}
+        run: |
+          bun build --compile --target=bun-${{ matrix.os }}-${{ matrix.arch }} \
+            --define CLEWD_VERSION="\"${VERSION#v}\"" \
+            --outfile clewd-${{ matrix.os }}-${{ matrix.arch }} src/main.ts
+      - name: Ad-hoc sign
+        if: matrix.os == 'darwin'
+        run: codesign --force -s - clewd-darwin-${{ matrix.arch }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: clewd-${{ matrix.os }}-${{ matrix.arch }}
+          path: clewd-${{ matrix.os }}-${{ matrix.arch }}
+          if-no-files-found: error
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Checksums
+        working-directory: dist
+        run: sha256sum clewd-* > checksums.txt
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          pre=""
+          case "${{ github.ref_name }}" in *-*) pre="--prerelease" ;; esac
+          gh release create "${{ github.ref_name }}" dist/* --repo "${{ github.repository }}" --title "${{ github.ref_name }}" --generate-notes $pre
