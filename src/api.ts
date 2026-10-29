@@ -66,8 +66,15 @@ export interface Context {
   store: Store;
   paths: Paths;
   version: string;
+  // Environment variables. Read secrets such as API tokens from here rather
+  // than putting them in config.ts.
+  env: Record<string, string | undefined>;
   // Bun's shell, for running other programs: await ctx.$`git status`.
   $: Shell;
+  // Runs a program attached to the terminal (stdin, stdout and stderr are
+  // inherited), for interactive tools like ssh or an editor. Resolves to its
+  // exit code. Arguments are passed as-is, never through a shell.
+  exec(argv: string[], options?: { cwd?: string; env?: Record<string, string | undefined> }): Promise<number>;
   // Runs another clewd command, so extensions can compose each other.
   run(argv: string[]): Promise<number>;
 }

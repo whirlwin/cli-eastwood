@@ -61,6 +61,8 @@ editor full types and autocomplete for `ctx`.
 | `store` | Persistent key/value store per extension, under `~/.local/state/cli-eastwood/` |
 | `config` | Your `config.ts`, including any custom keys you add |
 | `log` | `info`, `warn`, `error`, `debug` to stderr (`CLEWD_DEBUG=1` shows debug) |
+| `exec(argv)` | Run an interactive program (ssh, an editor) attached to the terminal; resolves to its exit code |
+| `env` | Environment variables: read tokens from here, not from `config.ts` |
 | `run(argv)` | Run another clewd command, so extensions can build on each other |
 | `paths`, `version` | Where clewd keeps things, and which clewd this is |
 
@@ -85,6 +87,13 @@ export default {
   },
 } satisfies Extension;
 ```
+
+### A full example
+
+[`examples/acme-company-cli`](examples/acme-company-cli) is a complete config
+for a made-up company: Slack (`slack send`, `slack status`), Jira (`jira mine`,
+`show`, `open`, `create`) and SSH by host name through a bastion (`ssh web-1`,
+`ssh all -- uptime`), with shared helpers and secrets kept in the environment.
 
 ### Imports
 

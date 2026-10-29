@@ -30,7 +30,10 @@ export function createApp(loaded: Loaded, paths: Paths) {
     store: createStore(paths.state, owner),
     paths,
     version: VERSION,
+    env: process.env,
     $: $ as unknown as Shell,
+    exec: (argv, options) =>
+      Bun.spawn(argv, { stdio: ["inherit", "inherit", "inherit"], cwd: options?.cwd, env: options?.env ?? process.env }).exited,
     run: (argv) => run(argv),
   });
 

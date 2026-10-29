@@ -133,6 +133,22 @@ test("ctx.run dispatches another command and ctx.store persists", async () => {
   expect(value).toBe("v");
 });
 
+test("ctx.env exposes the environment and ctx.exec returns the program's exit code", async () => {
+  let env: string | undefined;
+  const a = app([
+    {
+      name: "x",
+      commands: [
+        { name: "env", run: (ctx) => void (env = ctx.env.HOME) },
+        { name: "exec", run: (ctx) => ctx.exec(["sh", "-c", 'exit "$CODE"'], { env: { CODE: "3" } }) },
+      ],
+    },
+  ]);
+  await run(a, ["env"]);
+  expect(env).toBe(process.env.HOME);
+  expect((await run(a, ["exec"])).result).toBe(3);
+});
+
 test("a flag value of -h runs the command instead of showing help", async () => {
   let seen: unknown;
   const a = app([{ name: "x", commands: [{ name: "grep", flags: { pattern: { type: "string" } }, run: (ctx) => void (seen = ctx.flags.pattern) }] }]);
