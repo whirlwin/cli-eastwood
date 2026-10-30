@@ -2,7 +2,9 @@
   <img src="assets/logo.png" alt="Pixelated cowboy in a hat, squinting" width="400">
 </p>
 
-<h1 align="center">There are two kinds of people... those with agent CLIs, and those who grep</h1>
+<h1 align="center">CLI Eastwood</h1>
+
+<p align="center"><em>There are two kinds of people... those with agent CLIs, and those who grep</em></p>
 
 `clewd` is a small CLI that does almost nothing until you teach it. New
 commands live as TypeScript files in `~/.config/cli-eastwood/`, and clewd
